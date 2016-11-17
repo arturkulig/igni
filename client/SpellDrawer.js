@@ -78,6 +78,10 @@ export default React.createClass({
         const pushedBefore = last(this.userPoints)
         const distance = Math.sqrt(Math.pow(x - pushedBefore[0], 2) + Math.pow(y - pushedBefore[1], 2))
         if (distance < this.props.minStep) return
+
+        this.points.push([x, y])
+        return
+        //TODO simplify
         const pushedBeforeBefore = last(this.userPoints, 1)
         const interMissing = Math.max(1, Math.ceil(distance / this.props.minStep))
         const predicted = [
