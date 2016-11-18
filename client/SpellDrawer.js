@@ -78,29 +78,8 @@ export default React.createClass({
         const pushedBefore = last(this.userPoints)
         const distance = Math.sqrt(Math.pow(x - pushedBefore[0], 2) + Math.pow(y - pushedBefore[1], 2))
         if (distance < this.props.minStep) return
-
         this.points.push([x, y])
-        return
-        //TODO simplify
-        const pushedBeforeBefore = last(this.userPoints, 1)
-        const interMissing = Math.max(1, Math.ceil(distance / this.props.minStep))
-        const predicted = [
-            pushedBefore[0] * 2 - pushedBeforeBefore[0],
-            pushedBefore[1] * 2 - pushedBeforeBefore[1]
-        ]
         this.userPoints.push([x, y])
-        for (let i = 1; i <= interMissing; i++) {
-            const progress = i / interMissing
-            this.points.push([
-                pushedBefore[0] * (progress < 0.5 ? (progress * -4 / 3 + 1) : (progress * -2 / 3 + 2 / 3)) +
-                predicted[0] * (progress < 0.5 ? (progress * 2 / 3) : (progress * -2 / 3 + 2 / 3)) +
-                x * (progress < 0.5 ? (progress * 2 / 3) : (progress * 4 / 3 - 1 / 3)),
-
-                pushedBefore[1] * (progress < 0.5 ? (progress * -4 / 3 + 1) : (progress * -2 / 3 + 2 / 3)) +
-                predicted[1] * (progress < 0.5 ? (progress * 2 / 3) : (progress * -2 / 3 + 2 / 3)) +
-                y * (progress < 0.5 ? (progress * 2 / 3) : (progress * 4 / 3 - 1 / 3))
-            ])
-        }
     },
 
     resetPoints () {

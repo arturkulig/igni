@@ -2,6 +2,7 @@ import React from 'react'
 import SpellCanvas from './SpellCanvas'
 import SpellDrawer from './SpellDrawer'
 import range from '../common/range'
+import {learn, recognize} from '../common/shapes'
 import getDirections from '../common/getDirections'
 import smoothenValues from '../common/smoothenValues'
 
@@ -14,18 +15,32 @@ const colors = [
     "175, 0, 255"
 ]
 
+const signShapes = [
+    ['quen', [0, 0, 45, 180, 180, 180, 295, 295, 295, 295, 295, 65, 65]],
+    ['igni', [240, 240, 240, 240, 240, 0, 0, 0, 0, 120, 120, 120]],
+    ['yrden', [0, 0, 0, 230, 230, 230, 230, 230, 0, 0, 0, 140, 140, 140, 140, 140]],
+    ['aard', [240, 240, 120, 120, 120, 120, 120, 0, 0, 0, 0]],
+]
+
+const signColors = {
+    quen: '255, 175, 0',
+    igni: '255, 30, 0',
+    yrden: '175, 0, 255',
+    aard: '0, 175, 255'
+}
+
 export default React.createClass({
     displayName: 'App',
 
     getInitialState() {
         return {
-            color: 0,
+            sign: null,
             points: null
         }
     },
 
     handleStart() {
-        this.setState({ points: [] })
+        this.setState({ points: [], sign: null })
     },
 
     handleChange(points) {
@@ -41,29 +56,8 @@ export default React.createClass({
             (point, i) => i >= this.state.points.length - 1000
         )
         const directions = getDirections(lastPoints)
-        //const smoothenDirections = smoothenValues(directions)
-        const tresholdDirections = directions.map(
-            arc => Math.round(arc % 360 / 45) * 45 % 360
-        )
-        const foldDirections = tresholdDirections.length
-            ? tresholdDirections.reduce(
-                (result, arc) => {
-                    if (result.length === 0) {
-                        return [{arc, occurrences: 1}]
-                    }
-                    if (result[result.length - 1].arc === arc) {
-                        const occurrences = result[result.length - 1].occurrences + 1
-                        return result.slice(0, result.length - 1).concat([{ arc, occurrences }])
-                    }
-                    return result.concat([{arc, occurrences: 1}])
-                },
-                []
-            ) 
-            : []
-        //const importantDirections = foldDirections.filter(entry => entry.occurrences > tresholdDirections.length / )
-        //console.table([directions, smoothenDirections, tresholdDirections])
-        console.log(JSON.stringify(foldDirections))
-        this.setState({color: (this.state.color + 1) % colors.length})
+        const smoothenDirections = smoothenValues(directions)
+        this.setState({ sign: recognize(smoothenDirections, signShapes) })
     },
 
     render() {
@@ -75,7 +69,7 @@ export default React.createClass({
                         Math.random() * window.innerHeight
                     ])
                 } color={
-                    colors[this.state.color]
+                    this.state.sign ? signColors[this.state.sign] : '200, 200, 200'
                 }/>
                 <SpellDrawer
                     onStart={this.handleStart}
