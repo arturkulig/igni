@@ -6,8 +6,6 @@ const tick = (
     window.setTimeout
 )
 
-let frames = 0
-
 const HEIGHT_SCALE = 0.5
 
 import './SpellCanvas.scss'
@@ -32,13 +30,6 @@ export default React.createClass({
         }
     },
 
-    componentWillMount () {
-        setInterval(() => {
-            console.log('drawn', this.props.points.length, 'in', frames)
-            frames = 0
-        }, 1000)
-    },
-
     componentWillReceiveProps (nextProps) {
         if (this.props.color !== nextProps.color) {
             this.lastColorChange = Date.now()
@@ -61,15 +52,8 @@ export default React.createClass({
 
         const now = Date.now()
         this.ages = this.ages || []
+        this.lastDrawnAge = this.lastDrawnAge || []
 
-        const { width, height } = this.canvas.parentNode.getBoundingClientRect()
-        this.canvas.width = width
-        this.canvas.height = height * HEIGHT_SCALE
-        this.ctx.globalCompositeOperation = "source-over";
-        this.ctx.fillStyle = "black";
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        this.ctx.globalCompositeOperation = "screen";
         const rgb = this.props.color
             .split(',')
             .map(s => parseInt(s, 10))
@@ -96,7 +80,16 @@ export default React.createClass({
             )
             changingColor = true
         }
+
+        const { width, height } = this.canvas.parentNode.getBoundingClientRect()
+        this.canvas.width = width
+        this.canvas.height = height * HEIGHT_SCALE
+        this.ctx.globalCompositeOperation = 'source-over';
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.globalCompositeOperation = "screen";
         this.lastDrawnColor = rgb
+
         for (let i = 0; i < this.props.points.length; i++) {
             if (!(this.props.points[i] instanceof Array)) {
                 continue
@@ -107,13 +100,20 @@ export default React.createClass({
                 this.ages[i] = now - Math.random() * this.props.maxAge
             }
             // 0-maxAge
-            const maxAge = this.props.maxAge + Math.round(this.props.maxAge * 0.75 * sway(i / 10))
+            const maxAge = Math.round(this.props.maxAge * (1 + 0.5 * sway(this.ages[i])))
             const age = Math.floor((now - this.ages[i]) % maxAge) / maxAge
+            if ((this.lastDrawnAge[i] || 0) > age) {
+                this.ages[i] = now - Math.random() * this.props.maxAge
+                this.lastDrawnAge[i] = 0
+                continue
+            }
+            this.lastDrawnAge[i] = age
             const sizeVariation = this.props.maxSize * sway(i / 10)
+            const size = this.props.maxSize * (2 + sway(i / 10))
             if (changingColor) {
-                drawSpark(this.ctx, x, y * HEIGHT_SCALE, rgb, age, this.props.maxSize + sizeVariation / 2)
+                const radius = size / 2
+                drawSpark(this.ctx, x, y * HEIGHT_SCALE, rgb, age, radius)
             } else {
-                const size = this.props.maxSize * 2 + sizeVariation
                 this.ctx.drawImage(
                     getSparkCanvas(rgb, age, this.props.maxSize),
                     x - size / 2,
@@ -123,7 +123,6 @@ export default React.createClass({
                 )
             }
         }   
-        frames++
         tick(() => {
             this.looping = false
             this.loop()

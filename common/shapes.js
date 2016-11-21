@@ -14,8 +14,8 @@ export function recognize (directions, knownShapes) {
                     )
                     return (
                         Math.pow(
-                            1 - (difference < 15 ? 0 : difference) / 360,
-                            4
+                            1 - difference / 360,
+                            8
                         ) 
                     )
                 }
@@ -27,12 +27,8 @@ export function recognize (directions, knownShapes) {
         }
     )
     console.table(similarities)
-    const mostSimilarShape = similarities.reduce(
+    return similarities.reduce(
         (result, shape) => shape.similarity > result.similarity ? shape : result,
         similarities[0]
     )
-    if (mostSimilarShape.similarity < 0.5) {
-        return null
-    }
-    return mostSimilarShape.name
 }

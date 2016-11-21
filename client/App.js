@@ -57,7 +57,9 @@ export default React.createClass({
         )
         const directions = getDirections(lastPoints)
         const smoothenDirections = smoothenValues(directions)
-        this.setState({ sign: recognize(smoothenDirections, signShapes) })
+        const {similarity, name: sign} = recognize(smoothenDirections, signShapes)
+        this.setState({ sign })
+        console.log(name, similarity)
     },
 
     render() {
@@ -69,7 +71,7 @@ export default React.createClass({
                         Math.random() * window.innerHeight
                     ])
                 } color={
-                    this.state.sign ? signColors[this.state.sign] : '200, 200, 200'
+                    signColors[this.state.sign] || '200, 200, 200'
                 }/>
                 <SpellDrawer
                     onStart={this.handleStart}
